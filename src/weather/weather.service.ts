@@ -26,19 +26,19 @@ export class WeatherService {
   async fetchAndSaveWeather(): Promise<Weather> {
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${this.city}&appid=${this.apiKey}&units=metric`;
 
-  const response = await lastValueFrom(this.httpService.get(url));
-  const data = response.data;
+    const response = await lastValueFrom(this.httpService.get(url));
+    const data = response.data;
 
-  const weatherSnapshot = this.weatherRepo.create({
-    temperature: data.main.temp,
-    feelsLike: data.main.feels_like,
-    humidity: data.main.humidity,
-    conditions: data.weather[0].description,
-    capturedAt: new Date(data.dt * 1000),
-  });
+    const weatherSnapshot = this.weatherRepo.create({
+      temperature: data.main.temp,
+      feelsLike: data.main.feels_like,
+      humidity: data.main.humidity,
+      conditions: data.weather[0].description,
+      capturedAt: new Date(data.dt * 1000),
+    });
 
-  return await this.weatherRepo.save(weatherSnapshot);
-}
+    return await this.weatherRepo.save(weatherSnapshot);
+  }
 
   async getHistory(limit = 24): Promise<Weather[]> {
     return this.weatherRepo.find({
@@ -63,11 +63,11 @@ export class WeatherService {
       where: {},
       order: { capturedAt: 'DESC' },
     });
-  
+
     if (!latest) {
       throw new Error('No weather data found');
     }
-  
+
     return latest;
   }
 }
