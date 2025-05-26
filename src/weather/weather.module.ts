@@ -5,6 +5,7 @@ import { WeatherController } from './weather.controller';
 import { HttpModule as AxiosHttpModule } from '@nestjs/axios';
 import { Weather } from './entiities/weather.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { WeatherGateway } from './weather.gateway';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     TypeOrmModule.forFeature([Weather]),
     AxiosHttpModule,
   ],
-  providers: [WeatherService],
+  providers: [WeatherService, WeatherGateway],
   controllers: [WeatherController],
 })
 export class WeatherModule {}

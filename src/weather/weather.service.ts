@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { lastValueFrom } from 'rxjs';
 import { Weather } from './entiities/weather.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { WeatherGateway } from './weather.gateway';
 
 @Injectable()
 export class WeatherService {
@@ -18,6 +19,7 @@ export class WeatherService {
     private readonly weatherRepo: Repository<Weather>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly weatherGateway: WeatherGateway,
   ) {
     this.apiKey = this.configService.get<string>('OPENWEATHER_API_KEY');
     this.city = this.configService.get<string>('CITY') || 'Bogotá';
@@ -25,21 +27,22 @@ export class WeatherService {
 
   async fetchAndSaveWeather(): Promise<Weather> {
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${this.city}&appid=${this.apiKey}&units=metric`;
-
-  const response = await lastValueFrom(this.httpService.get(url));
-  const data = response.data;
-
-  // Mapea solo los campos necesarios
-  const weatherSnapshot = this.weatherRepo.create({
-    temperature: data.main.temp,
-    feelsLike: data.main.feels_like,
-    humidity: data.main.humidity,
-    conditions: data.weather[0].description,
-    capturedAt: new Date(data.dt * 1000),
-  });
-
-  return await this.weatherRepo.save(weatherSnapshot);
-}
+    const response = await lastValueFrom(this.httpService.get(url));
+    const data = response.data;
+  
+    const weatherSnapshot = this.weatherRepo.create({
+      temperature: data.main.temp,
+      feelsLike: data.main.feels_like,
+      humidity: data.main.humidity,
+      conditions: data.weather[0].description,
+      capturedAt: new Date(data.dt * 1000),
+    });
+  
+    const saved = await this.weatherRepo.save(weatherSnapshot);
+    this.weatherGateway.sendNewWeather(saved);
+  
+    return saved;
+  }
 
   async getHistory(limit = 24): Promise<Weather[]> {
     return this.weatherRepo.find({
