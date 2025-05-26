@@ -29,7 +29,6 @@ export class WeatherService {
   const response = await lastValueFrom(this.httpService.get(url));
   const data = response.data;
 
-  // Mapea solo los campos necesarios
   const weatherSnapshot = this.weatherRepo.create({
     temperature: data.main.temp,
     feelsLike: data.main.feels_like,
@@ -48,7 +47,7 @@ export class WeatherService {
     });
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_HOUR)
   async handleCron() {
     this.logger.log('Cron job started: Fetching and saving weather data...');
     try {
